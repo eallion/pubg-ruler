@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使用说明 - PUBG 测距尺</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="apple-touch-icon" href="./favicon.svg">
+  <style>
+    .guide-container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem 1.5rem;
+    }
+    .guide-header-section {
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 1.5rem;
+    }
+    .guide-title {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.6rem;
+    }
+    .guide-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .guide-card-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+    }
+    .guide-section-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+    .guide-section-badge {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      background: rgba(37, 99, 235, 0.18);
+      color: #93c5fd;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .guide-item {
+      margin-bottom: 1.25rem;
+    }
+    .guide-item:last-child {
+      margin-bottom: 0;
+    }
+    .guide-item-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #e5e7eb;
+      margin-bottom: 0.35rem;
+    }
+    .guide-item-body {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .guide-highlight-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-focus);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+    .guide-alert-box {
+      background: rgba(220, 38, 38, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin: 0.75rem 0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #fecaca;
+    }
+    .guide-footer-action {
+      display: flex;
+      justify-content: center;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部导航 -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-title">
+        <a href="./index.html?from=guide" style="color: #ffffff; text-decoration: none; display: flex; align-items: center; gap: 0.6rem;">
+          <img src="./favicon.svg" alt="PUBG 测距尺 Logo" class="brand-logo" width="24" height="24">
+          <span>PUBG 测距尺</span>
+          <span class="brand-tag">使用指南</span>
+        </a>
+      </div>
+      <div class="header-tools">
+        <a href="./index.html?from=guide" class="btn btn-primary btn-sm" style="text-decoration: none; padding: 0.35rem 0.85rem; font-size: 0.82rem;">返回测距尺</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 说明正文容器 -->
+  <main class="guide-container">
+    
+    <div class="guide-header-section">
+      <h1 class="guide-title">使用说明</h1>
+      <p class="guide-desc">
+        本测距尺是依据显示器物理像素点阵与游戏地图几何渲染，通过客户端微米级计算输出 1:1 实体图纸的专业测距工具。请按照“参数生成 → 图纸打印 → 游戏实战使用”三步流程操作。
+      </p>
+    </div>
+
+    <!-- 阶段一：生成与配置 -->
+    <section class="guide-card-section">
+      <div class="guide-section-title">
+        <span class="guide-section-badge">阶段一</span>
+        <span>参数配置与图纸生成</span>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">1. 显示器硬件规格绑定</div>
+        <div class="guide-item-body">
+          系统根据屏幕发光有效面板尺寸换算网格物理间距。优先在【型号库检索】或【笔记本】分类中输入设备型号并确认；若型号库未收录，请切换至【通用与自定义】，使用直尺测量屏幕有效显示区域的长宽（单位：mm）手动填写。
+        </div>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">2. 游戏分辨率与几何形变</div>
+        <div class="guide-item-body">
+          • <strong>标准分辨率</strong>（如 1920×1080、2560×1440）：游戏像素与显示屏 1:1 对等，生成完美同心圆标尺；<br>
+          • <strong>横向拉伸非标分辨率</strong>（如 1728×1080、2304×1440）：游戏画面横向拉伸，系统自动启动同心椭圆长短轴映射算法，保证图纸与屏幕画面严格几何贴合。
+        </div>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">3. 地图规格自适应</div>
+        <div class="guide-item-body">
+          根据当前对局地图选择对应规格：海岛、沙漠等 8×8 大地图放大 3 次；萨诺（雨林）4×4 中地图放大 2 次；卡拉金、帕拉莫等小地图保持默认不放大。系统自动等比换算同心圆半径。
+        </div>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">4. 生成微米级矢量 PDF</div>
+        <div class="guide-item-body">
+          选择纸张规格（默认为标准 A4 竖版打印），点击【下载 PDF】。系统在本地浏览器内核装配纯矢量高保真文件，不经过任何服务端压缩。
+        </div>
+      </div>
+    </section>
+
+    <!-- 阶段二：介质与打印 -->
+    <section class="guide-card-section">
+      <div class="guide-section-title">
+        <span class="guide-section-badge">阶段二</span>
+        <span>打印介质与规范</span>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">1. 打印纸张推荐：推荐 110g 硫酸纸（描图纸 / 临摹纸）</div>
+        <div class="guide-item-body">
+          强烈推荐使用 <strong>110g 克重的硫酸纸</strong>（文具店或网络平台普遍有售，亦常称作描图纸、硫酸描图纸、半透明制图纸）。<br>
+          <div class="guide-highlight-box">
+            <strong>核心优势：</strong>110g 硫酸纸具备极佳的半透明物理特性，相比轻薄克重更加平整挺括、不易受潮卷边。实战时直接平贴或手持置于显示器屏幕前，既能清晰透视屏幕底层的游戏地图、队友编号与标点，又能准确看清纸上的同心圆弧线与测距刻度。
+          </div>
+          * 注：普通白纸亦可使用，但需自行裁剪边角或在强光下透视屏幕。
+        </div>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">2. 打印建议：建议选择 1:1 实际大小（无缩放）</div>
+        <div class="guide-item-body">
+          <div class="guide-highlight-box" style="border-color: rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.08);">
+            <strong>建议保持 1:1 实际大小打印：</strong><br>
+            呼出系统打印对话框后，建议页面缩放选择【实际大小】或【100% 缩放比例】，不建议勾选【适合页面】、【适合纸张边距】或【缩放以符合页面】，避免打印机驱动按边距缩小纸张。<br>
+            <strong>特别提示：</strong>若打印后进行了微调校准，校准后重新打印时务必使用与校准前完全相同的打印方式（如同一台打印机、相同的进纸方向与打印参数设置），以确保校准补偿结果严密对齐。
+          </div>
+        </div>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">3. 标尺核验与打印微调</div>
+        <div class="guide-item-body">
+          打印完成后，使用实体直尺测量纸张左侧的 <code>物理校准线 100mm</code>：<br>
+          • 实测刚好为 100.0mm：打印精度完美，可直接投入实战；<br>
+          • 存在偏差（如量出 100.5mm）：属于打印机进纸滚轮微小机械拉伸，进入网页【步骤 5 打印校准】输入实测值，系统将自动逆向预补偿并重新生成图纸。
+        </div>
+      </div>
+    </section>
+
+    <!-- 阶段三：游戏内使用方法 -->
+    <section class="guide-card-section">
+      <div class="guide-section-title">
+        <span class="guide-section-badge">阶段三</span>
+        <span>游戏实战测距方法</span>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">1. 游戏内灵敏度前置设定（仅需设置一次）</div>
+        <div class="guide-item-body">
+          进入游戏按 <code>ESC</code> → <code>设置</code> → <code>游戏玩法</code> → <code>界面</code> → <code>地图</code>：<br>
+          将 <strong>世界地图缩放灵敏度</strong> 严格设置为 <strong>10</strong>。这能确保鼠标滚轮缩放时的步进幅度与物理计算基准严格一致。
+        </div>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">2. 游戏内大地图固定层级</div>
+        <div class="guide-item-body">
+          对局中按 <code>M</code> 键展开全屏大地图，根据地图规格操作滚轮：<br>
+          • 8×8 大地图（海岛、沙漠、泰戈、帝斯顿、荣都）：向上滚轮<strong>放大 3 次</strong>；<br>
+          • 4×4 中地图（雨林萨诺）：向上滚轮<strong>放大 2 次</strong>；<br>
+          • 3×3 / 2×2 小地图（帕拉莫、卡拉金）：保持默认<strong>不放大</strong>。
+        </div>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">3. 原点（0 点）对位操作</div>
+        <div class="guide-item-body">
+          手持打印好的半透明硫酸纸测距尺：<br>
+          将纸张左下角的<strong>坐标原点（0 点）</strong>精准对准地图上<strong>自己的定位图标</strong>（例如自己在队伍中是 1 号，地图上会有专属的 1 号带圆圈数字标）。
+        </div>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">4. 目标落点读数</div>
+        <div class="guide-item-body">
+          在游戏中用准心对准目标点按快速标记（或在大地图上标点），观察目标标记落在测距尺的哪一条同心弧线上：<br>
+          • 细线代表每 10 米（或 20 米）步进；<br>
+          • 粗线与轴线刻度标注 50、100、150、200、300 米等整数档位；<br>
+          • 读取该弧线标注的数字，即为自身与目标点的<strong>绝对真实物理直线距离</strong>。
+        </div>
+      </div>
+
+      <div class="guide-item">
+        <div class="guide-item-title">5. 战术应用场景</div>
+        <div class="guide-item-body">
+          • <strong>栓狙 / 连狙远距离调密位</strong>：获知目标为 380 米，即可直接按下 <code>PageUp</code> 将四倍镜/八倍镜归零点调节至 400 米抬枪即中；<br>
+          • <strong>迫击炮精准定距轰炸</strong>：获取目标房屋精确米数，直接微调迫击炮距离射击；<br>
+          • <strong>超视距手雷与烟雾弹投掷</strong>：结合 30~50 米高抛/低抛轨迹完成预判覆盖。
+        </div>
+      </div>
+    </section>
+
+    <!-- 底部返回与开始制作按钮 -->
+    <div class="guide-footer-action">
+      <a href="./index.html?from=guide" class="btn btn-primary" style="padding: 0.85rem 2.5rem; font-size: 0.95rem; text-decoration: none;">开始制作测距尺</a>
+    </div>
+
+    <!-- 免责声明说明文本 (位于 main 内部最后一个 div，紧接 footer 顶部) -->
+    <div class="main-disclaimer">
+      <span>声明：PUBG: BATTLEGROUNDS 是 KRAFTON, Inc. 的注册商标。本项目为玩家个人独立开发的非营利性物理计算辅助工具，与 KRAFTON, Inc. 无任何官方隶属、赞助、授权或背书关系。</span>
+    </div>
+  </main>
+
+  <!-- 页脚版权与链接 -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-copyright">
+        <span>© <a href="https://eallion.com" target="_blank" rel="noopener noreferrer">eallion.com</a></span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/eallion/pubg-ruler" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <span class="footer-divider">/</span>
+        <a href="https://e5n.cc/@eallion" target="_blank" rel="me noopener noreferrer" class="footer-link">Mastodon</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // 无论点击页面内哪个返回链接，均记录会话标记，避免返回主页时弹出重复引导弹窗
+    document.querySelectorAll('a[href*="index.html"]').forEach(function(link) {
+      link.addEventListener('click', function() {
+        try {
+          sessionStorage.setItem('pubg_ruler_skip_welcome', '1');
+        } catch (e) {}
+      });
+    });
+  </script>
+</body>
+</html>

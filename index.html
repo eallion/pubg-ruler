@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PUBG 测距尺</title>
+  <link rel="stylesheet" href="./style.css">
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="apple-touch-icon" href="./favicon.svg">
+</head>
+<body>
+
+  <!-- 自定义 Toast 提示容器 -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- 顶部主标题 -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-title">
+        <img src="./favicon.svg" alt="PUBG 测距尺 Logo" class="brand-logo" width="24" height="24">
+        <span>PUBG 测距尺</span>
+        <span class="brand-tag" id="headerPaperTag">A4</span>
+      </div>
+      <div class="header-tools" style="display: flex; gap: 0.5rem; align-items: center;">
+        <a href="./guide.html" class="btn btn-secondary btn-sm" id="globalGuideLink" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center;">使用说明</a>
+        <button type="button" class="btn btn-secondary btn-sm" id="exportConfigBtn" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">导出配置</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="importConfigTrigger" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">导入配置</button>
+        <input type="file" id="importConfigFile" accept=".json" style="display: none;">
+      </div>
+    </div>
+  </header>
+
+  <!-- 步骤导航 -->
+  <nav class="stepper-nav">
+    <div class="stepper-container">
+      <div class="step-indicator-item active" data-step="1">
+        <div class="step-num">1</div>
+        <div class="step-info">
+          <span class="step-name">显示器</span>
+        </div>
+      </div>
+      <div class="step-indicator-item" data-step="2">
+        <div class="step-num">2</div>
+        <div class="step-info">
+          <span class="step-name">分辨率</span>
+        </div>
+      </div>
+      <div class="step-indicator-item" data-step="3">
+        <div class="step-num">3</div>
+        <div class="step-info">
+          <span class="step-name">地图实测</span>
+        </div>
+      </div>
+      <div class="step-indicator-item" data-step="4">
+        <div class="step-num">4</div>
+        <div class="step-info">
+          <span class="step-name">生成打印</span>
+        </div>
+      </div>
+      <div class="step-indicator-item" data-step="5">
+        <div class="step-num">5</div>
+        <div class="step-info">
+          <span class="step-name">打印校准</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主交互界面 -->
+  <main class="main-wrapper">
+    <!-- 左侧：表单与操作配置区 -->
+    <div class="glass-panel">
+      
+      <!-- 步骤 1: 显示器规格 -->
+      <section class="step-section active" data-step="1">
+        <h2 class="step-headline">显示器规格</h2>
+        <p class="step-subtext">选择或检索显示器型号，自动获取面板物理长宽。</p>
+
+        <!-- 页面顶部常驻提示 (绿色风格，指引未收录型号自行测量) -->
+        <div class="status-box status-success" style="margin-bottom: 1.25rem; font-size: 0.83rem; line-height: 1.55;">
+          <strong>提示：</strong>若您的显示器或笔记本型号未在型号库中收录，请切换至【通用规格】或【自定义】，使用直尺测量显示器面板有效显示区域的物理尺寸（长与宽）并手动填写。
+        </div>
+
+        <!-- 屏幕探测可折叠工具栏 (强调醒目样式，提醒用户优先检测当前显示器) -->
+        <div class="collapsible-box collapsible-box-highlight" id="detectScreensCollapsible" style="margin-bottom: 1.25rem;">
+          <div class="collapsible-header" id="detectScreensToggle">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <span class="collapsible-arrow" id="detectScreensArrow" style="color: #60a5fa;">▸</span>
+              <span class="detect-title-highlight">
+                <span>检测当前显示器</span>
+                <span class="detect-badge-highlight">推荐</span>
+              </span>
+              <span style="font-size: 0.76rem; color: #93c5fd;">(一键识别硬件与分辨率)</span>
+            </div>
+            <span class="collapsible-action-text" id="detectScreensToggleText" style="color: #60a5fa; font-weight: 500;">展开</span>
+          </div>
+          <div class="collapsible-body hidden" id="detectScreensBody">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <div style="font-size: 0.8rem; color: var(--text-secondary);">自动读取当前屏幕物理分辨率、系统缩放与硬件信息，快速智能匹配型号库。</div>
+              <button type="button" class="btn btn-primary btn-sm" id="detectScreensBtn" style="font-weight: 600; padding: 0.35rem 0.95rem;">开始检测</button>
+            </div>
+            <div id="detectedScreensContainer" style="display: none;">
+              <!-- 动态渲染探测到的多显示器卡片 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 模式切换 Tab -->
+        <div class="tab-pill-group" style="margin-bottom: 1.25rem;">
+          <button type="button" class="tab-pill active" id="tabModeDb">显示器型号库</button>
+          <button type="button" class="tab-pill" id="tabModeLaptop">笔记本</button>
+          <button type="button" class="tab-pill" id="tabModeGeneric">通用规格</button>
+        </div>
+
+        <!-- 视图 A: 显示器数据库检索 -->
+        <div id="screenDbView">
+          <div class="search-filter-row" style="display: flex; gap: 0.75rem; margin-bottom: 1rem; position: relative; z-index: 20;">
+            <div class="custom-dropdown" id="brandCustomDropdown" style="min-width: 170px; max-width: 190px;">
+              <button type="button" class="custom-dropdown-btn" id="brandDropdownBtn">
+                <span class="custom-dropdown-text" id="brandDropdownLabel">全部品牌</span>
+                <span class="custom-dropdown-arrow" id="brandDropdownArrow">▾</span>
+              </button>
+              <div class="custom-dropdown-menu hidden" id="brandDropdownMenu">
+                <!-- 由 app.js 动态填充品牌卡项 -->
+              </div>
+              <select id="brandFilterSelect" style="display: none;">
+                <option value="all">全部品牌</option>
+              </select>
+            </div>
+            <div style="position: relative; flex: 1; display: flex; align-items: center;">
+              <input type="text" id="monitorSearchInput" class="form-input" style="padding-right: 2.2rem;" placeholder="输入型号搜索，如：XL2546K, 27GP850, 24G2...">
+              <button type="button" id="clearSearchBtn" title="清空搜索" style="position: absolute; right: 0.5rem; background: none; border: none; color: var(--text-tertiary); cursor: pointer; padding: 0.2rem 0.4rem; font-size: 1rem; line-height: 1; display: none;">×</button>
+            </div>
+          </div>
+
+          <div class="monitor-db-list" id="monitorDbList">
+            <!-- 由 app.js 动态填充数据库卡片 -->
+          </div>
+
+          <div id="selectedMonitorNotice" class="status-box status-success" style="margin-top: 1rem; display: none;">
+            <!-- 已选显示器面板信息 -->
+          </div>
+        </div>
+
+        <!-- 视图 B: 通用预设与自定义输入 -->
+        <div id="screenGenericView" class="hidden">
+          <div class="options-grid" id="screenPresetContainer">
+            <!-- 通用选项卡片 -->
+          </div>
+
+          <div class="form-box hidden" id="customScreenBox">
+            <div class="form-row">
+              <label class="form-label" for="customDiagInput">屏幕尺寸 (英寸)</label>
+              <div class="input-group">
+                <input type="number" id="customDiagInput" class="form-input" value="24.5" step="0.1" min="10" max="100">
+                <span class="input-unit">英寸</span>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="customRatioSelect">面板比例</label>
+              <select id="customRatioSelect" class="form-select">
+                <option value="16:9" selected>16:9 (标准宽屏)</option>
+                <option value="16:10">16:10 (部分电竞/办公)</option>
+                <option value="21:9">21:9 (带鱼屏)</option>
+                <option value="4:3">4:3 (传统方屏)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 步骤 2: 游戏分辨率 -->
+      <section class="step-section" data-step="2">
+        <h2 class="step-headline">游戏分辨率</h2>
+        <p class="step-subtext">支持 1728×1080、2304×1440 等横向拉伸非标分辨率。</p>
+
+        <div class="options-grid" id="resPresetContainer">
+          <!-- 由 app.js 动态渲染分辨率卡片 -->
+        </div>
+
+        <div class="form-box hidden" id="customResBox">
+          <div class="form-row">
+            <label class="form-label">自定义分辨率</label>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <div class="input-group" style="flex: 1; min-width: 240px;">
+                <input type="number" id="customResW" class="form-input" placeholder="宽度 (如 1728)" value="1728" step="1">
+                <span class="input-unit">×</span>
+                <input type="number" id="customResH" class="form-input" placeholder="高度 (如 1080)" value="1080" step="1">
+                <span class="input-unit">像素</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <label class="checkbox-label" for="customScaleCheckbox" style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; font-size: 0.85rem; color: var(--text-main);">
+                  <input type="checkbox" id="customScaleCheckbox" class="form-checkbox">
+                  <span>缩放</span>
+                </label>
+                <div id="customScaleContainer" class="hidden" style="display: none; align-items: center;">
+                  <div class="custom-dropdown" id="scaleCustomDropdown" style="min-width: 110px;">
+                    <button type="button" class="custom-dropdown-btn" id="scaleDropdownBtn" style="padding: 0.55rem 0.75rem; font-size: 0.82rem;">
+                      <span class="custom-dropdown-text" id="scaleDropdownLabel">100%</span>
+                      <span class="custom-dropdown-arrow" id="scaleDropdownArrow">▾</span>
+                    </button>
+                    <div class="custom-dropdown-menu hidden" id="scaleDropdownMenu" style="min-width: 120px; max-height: 220px;">
+                      <!-- 由 app.js 动态填充缩放百分比选项 -->
+                    </div>
+                    <select id="customScaleSelect" style="display: none;">
+                      <option value="100" selected>100%</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="resAnalysisBox" class="status-box status-warning">
+          <!-- 动态提示拉伸因子与几何形状判断 -->
+        </div>
+      </section>
+
+      <!-- 步骤 3: 地图实测 -->
+      <section class="step-section" data-step="3">
+        <h2 class="step-headline">地图实测</h2>
+        <p class="step-subtext">游戏内 M 键放大三次，直尺测量屏幕网格物理尺寸。</p>
+
+        <div class="guide-card">
+          <strong>测量说明：</strong>
+          <ol class="guide-step-list">
+            <li>进入游戏：<code>ESC</code> - <code>设置</code> - <code>游戏玩法</code> - <code>界面</code>，将 <strong>世界地图缩放灵敏度</strong> 设为 <code>10</code>；</li>
+            <li>游戏中按 <code>M</code> 键展开大地图（8×8 放大 3 次，4×4 放大 2 次，3×3/2×2 不放大）；</li>
+            <li>此时网格固定：细线白格为 <strong>100 米</strong>，大方格为 <strong>1000 米</strong>；</li>
+            <li>手持实体直尺贴屏，测量 <strong>1 个小格 (100米)</strong> 与 <strong>3 个小格 (300米)</strong> 的物理毫米数。</li>
+          </ol>
+        </div>
+
+        <!-- 地图规格选择 (8x8, 4x4, 3x3, 2x2) -->
+        <div class="form-box" style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <label class="form-label" style="margin-bottom: 0;">地图规格</label>
+            <span style="font-size: 0.75rem; color: #93c5fd; font-family: var(--font-mono);" id="mapZoomStatusTag">8×8 放大 3 次</span>
+          </div>
+          <div class="tab-pill-group" id="mapSizeTabGroup" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; background: rgba(0, 0, 0, 0.3); padding: 0.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+            <button type="button" class="tab-pill active" data-map-size="8x8" style="padding: 0.45rem 0.2rem; text-align: center;">
+              <div style="font-weight: 600; font-size: 0.85rem;">8×8</div>
+              <div style="font-size: 0.68rem; opacity: 0.75; margin-top: 0.1rem;">放大 3 次</div>
+            </button>
+            <button type="button" class="tab-pill" data-map-size="4x4" style="padding: 0.45rem 0.2rem; text-align: center;">
+              <div style="font-weight: 600; font-size: 0.85rem;">4×4</div>
+              <div style="font-size: 0.68rem; opacity: 0.75; margin-top: 0.1rem;">放大 2 次</div>
+            </button>
+            <button type="button" class="tab-pill" data-map-size="3x3" style="padding: 0.45rem 0.2rem; text-align: center;">
+              <div style="font-weight: 600; font-size: 0.85rem;">3×3</div>
+              <div style="font-size: 0.68rem; opacity: 0.75; margin-top: 0.1rem;">不放大</div>
+            </button>
+            <button type="button" class="tab-pill" data-map-size="2x2" style="padding: 0.45rem 0.2rem; text-align: center;">
+              <div style="font-weight: 600; font-size: 0.85rem;">2×2</div>
+              <div style="font-size: 0.68rem; opacity: 0.75; margin-top: 0.1rem;">不放大</div>
+            </button>
+          </div>
+          <div style="font-size: 0.74rem; color: var(--text-tertiary); margin-top: 0.5rem; line-height: 1.4;" id="mapSubtextHint">
+            全图 8km，按 M 键打开大地图并向上滚轮放大 3 次（包含：海岛、沙漠、泰戈、帝斯顿、荣都）
+          </div>
+        </div>
+
+        <div class="status-box status-info" id="measureModeHint">
+          <!-- 动态指引 -->
+        </div>
+
+        <div class="form-box">
+          <h3 style="font-size: 0.9rem; margin-bottom: 0.75rem; color: #fff;">垂直方向 (Y轴)</h3>
+          <div class="form-row" style="margin-bottom: 0;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
+              <select id="yMeasureModeSelect" class="form-select" style="width: auto; min-width: 145px; flex-shrink: 0;">
+                <option value="100m" selected>100m 高度 (1格)</option>
+                <option value="300m">300m 高度 (3格)</option>
+              </select>
+              <div class="input-group" style="flex: 1;">
+                <input type="number" id="yMeasureInput" class="form-input" placeholder="输入 100m 屏幕实测高度" step="0.1" min="10" max="300">
+                <span class="input-unit">mm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-box" id="measureXGroup">
+          <h3 style="font-size: 0.9rem; margin-bottom: 0.75rem; color: #fff;">水平方向 (X轴)</h3>
+          <div class="form-row" style="margin-bottom: 0;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
+              <select id="xMeasureModeSelect" class="form-select" style="width: auto; min-width: 145px; flex-shrink: 0;">
+                <option value="100m" selected>100m 宽度 (1格)</option>
+                <option value="300m">300m 宽度 (3格)</option>
+              </select>
+              <div class="input-group" style="flex: 1;">
+                <input type="number" id="xMeasureInput" class="form-input" placeholder="输入 100m 屏幕实测宽度" step="0.1" min="10" max="300">
+                <span class="input-unit">mm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 理论参考双标准模块 -->
+        <div class="theory-reference-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div style="font-size: 0.85rem; font-weight: 600; color: #ffffff;">理论推导参考</div>
+            <span id="theoryRecommendBadge" class="badge badge-standard">标准推荐</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <!-- 标准基准 -->
+            <div class="theory-box active-recommend" id="theoryStandardBox" style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.75rem; transition: all 0.15s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <span style="font-size: 0.8rem; font-weight: 600; color: #ffffff;">标准基准</span>
+                <span style="font-size: 0.7rem; color: var(--text-tertiary);">1:1 正圆</span>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;">
+                100m：<span id="theoryStd100" style="color: #93c5fd; font-family: var(--font-mono); font-weight: 600;">-- mm</span><br>
+                300m：<span id="theoryStd300" style="color: #93c5fd; font-family: var(--font-mono); font-weight: 600;">-- mm</span>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="applyTheoryStdBtn" style="margin-top: 0.5rem; width: 100%; padding: 0.35rem 0.5rem; font-size: 0.75rem;">填入标准</button>
+            </div>
+            <!-- 非标基准 -->
+            <div class="theory-box" id="theoryStretchedBox" style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.75rem; transition: all 0.15s ease;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <span style="font-size: 0.8rem; font-weight: 600; color: #ffffff;">非标基准</span>
+                <span style="font-size: 0.7rem; color: #f59e0b;">横向拉伸</span>
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1.5;">
+                纵100m：<span id="theoryStrY100" style="color: #fcd34d; font-family: var(--font-mono); font-weight: 600;">-- mm</span><br>
+                横100m：<span id="theoryStrX100" style="color: #fcd34d; font-family: var(--font-mono); font-weight: 600;">-- mm</span>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="applyTheoryStrBtn" style="margin-top: 0.5rem; width: 100%; padding: 0.35rem 0.5rem; font-size: 0.75rem;">填入非标</button>
+            </div>
+          </div>
+          <div style="font-size: 0.72rem; color: var(--text-tertiary); line-height: 1.4;">
+            * 注：标准基准适用于原生 16:9 像素未变形；非标基准根据当前拉伸倍率换算横向扩展物理尺寸。
+          </div>
+        </div>
+
+        <div class="status-box status-info" id="calcSummaryText">
+          <span style="color: var(--text-secondary);">
+            等待输入实测尺寸：垂直与水平方向默认不预填数据。请用物理直尺测量游戏地图对应刻度填入上方输入框，或点击上方【理论推导参考】一键应用推荐值。
+          </span>
+        </div>
+      </section>
+
+      <!-- 步骤 4: 生成导出 -->
+      <section class="step-section" data-step="4">
+        <h2 class="step-headline">生成打印</h2>
+        <p class="step-subtext">选择纸张规格与刻度密度，推荐使用 110g 硫酸纸打印以方便透视屏幕。</p>
+
+        <div class="form-box">
+          <label class="form-label" for="paperSizeSelect">纸张规格</label>
+          <select id="paperSizeSelect" class="form-select">
+            <option value="A4" selected>A4 竖版 (210 × 297 mm)</option>
+            <option value="A3">A3 竖版 (297 × 420 mm)</option>
+            <option value="A5">A5 竖版 (148 × 210 mm)</option>
+            <option value="B4">B4 竖版 (250 × 353 mm)</option>
+            <option value="B5">B5 竖版 (176 × 250 mm)</option>
+            <option value="Letter">Letter 竖版 (215.9 × 279.4 mm)</option>
+            <option value="Legal">Legal 竖版 (215.9 × 355.6 mm)</option>
+          </select>
+        </div>
+
+        <div class="form-box">
+          <label class="form-label">刻度密度</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="densityMode" id="density10m" value="10m" checked>
+              <span>10m / 圈 (50m 加粗)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="densityMode" id="density20m" value="20m">
+              <span>20m / 圈 (100m 加粗)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="status-box status-info" style="font-family: var(--font-mono); font-size: 0.78rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span>配置 ID: <strong id="sessionUuidDisplay">-</strong></span>
+            <label class="modal-checkbox-label" style="font-size: 0.76rem;">
+              <input type="checkbox" id="printUuidCheckbox" checked> 打印 ID 到纸张
+            </label>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="copyUuidBtn" style="padding: 0.15rem 0.5rem; font-size: 0.72rem;">复制 ID</button>
+        </div>
+
+        <div id="paperRangeHint" class="status-box" style="margin-bottom: 1.25rem; font-size: 0.8rem; line-height: 1.5; background: rgba(37, 99, 235, 0.08); border-color: rgba(37, 99, 235, 0.25); color: #93c5fd;">
+          <!-- 动态填充当前纸张测距覆盖范围 -->
+        </div>
+
+        <div class="guide-card" style="margin-bottom: 1.5rem;">
+          <strong>打印建议与注意事项：</strong>
+          <ul class="guide-step-list" style="margin-top: 0.4rem;">
+            <li>推荐打印纸张：推荐使用 <strong>110g 硫酸纸</strong>（半透明描图纸，平整挺括且方便透视屏幕地图）；</li>
+            <li>建议打印时勾选 <code>实际大小</code> 或 <code>100% 缩放比例</code>，不建议勾选 <code>适合纸张</code>、<code>缩放以符合页面</code>；</li>
+            <li>出纸后可对照左侧 <code>物理标尺线</code> 核验 50mm / 100mm 长度；</li>
+            <li>若后续进行了微调校准，校准后重新打印时需使用与校准前相同的打印方式（如同一打印机、相同的进纸方向与打印设置）。</li>
+          </ul>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <button type="button" class="btn btn-primary" id="downloadPdfBtn" style="padding: 0.85rem;">下载 PDF</button>
+          <div style="display: flex; gap: 0.75rem;">
+            <button type="button" class="btn btn-secondary" id="printPageBtn" style="flex: 1;">打印</button>
+            <button type="button" class="btn btn-secondary" id="downloadSvgBtn" style="flex: 1;">下载 SVG</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 步骤 5: 打印校准 -->
+      <section class="step-section" data-step="5">
+        <h2 class="step-headline">打印校准</h2>
+        <p class="step-subtext">根据纸张实测尺寸反推补偿因子，消除打印机机械公差。</p>
+
+        <!-- 醒目红色提示：尺寸不准才需要校准 -->
+        <div class="status-box status-danger" style="margin-bottom: 1.25rem;">
+          <strong>注意：</strong>若上一步打印出的测距尺实测尺寸精准（误差小于 0.5mm），请直接使用，<strong>无需校准</strong>。仅当打印机因进纸机械拉伸或缩水导致尺寸偏差时，才需使用本校准功能。
+        </div>
+
+        <!-- UUID 识别与核对区块 (支持多人生成场景检索顾客配置) -->
+        <div class="form-box" style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <label class="form-label" style="margin-bottom: 0;" for="calibUuidInput">配置 UUID 核对</label>
+            <span style="font-size: 0.75rem; color: var(--text-tertiary);">默认匹配最新配置</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="text" id="calibUuidInput" class="form-input" placeholder="输入纸张上的 8 位或完整 UUID" style="font-family: var(--font-mono); font-size: 0.85rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="calibCheckUuidBtn" style="white-space: nowrap;">核对</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="calibResetUuidBtn" style="white-space: nowrap;" title="恢复为当前最新配置">最新</button>
+          </div>
+          <div id="calibUuidStatus" class="status-box status-info" style="margin-top: 0.75rem; margin-bottom: 0; padding: 0.65rem 0.85rem; font-size: 0.8rem;">
+            当前校准配置：<strong id="calibActiveUuidText">-</strong> | <span id="calibActiveSummaryText">当前最新会话</span>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <strong>校准说明：</strong>
+          <p style="margin-top: 0.3rem;">
+            使用实体直尺测量打印出的纸张：<br>
+            • <strong>横向实测</strong>：测量横向 100 米线（目标 <span id="calibTarget100" style="color: #60a5fa; font-weight: 600;">33.33 mm</span>）或 300 米线（目标 <span id="calibTarget300" style="color: #60a5fa; font-weight: 600;">100.00 mm</span>）；<br>
+            • <strong>竖向实测</strong>：测量竖向 100 米线（目标 <span id="calibTargetY100" style="color: #34d399; font-weight: 600;">30.00 mm</span>）或 300 米线（目标 <span id="calibTargetY300" style="color: #34d399; font-weight: 600;">90.00 mm</span>）；<br>
+            • <strong>比例尺实测</strong>：测量左侧 <code>物理校准线 100mm</code> 实际长度。<br>
+            填写实测数值后点击“应用补偿”，系统将分别计算横向与竖向打印公差比率并重构图纸。
+          </p>
+        </div>
+
+        <div class="form-box">
+          <h3 style="font-size: 0.9rem; margin-bottom: 0.85rem; color: #fff;">横向实测</h3>
+          <div class="form-row">
+            <label class="form-label" for="calibPrinted100" id="labelCalibPrinted100">用直尺测量打印纸张同心圆横向的 100m</label>
+            <div class="input-group">
+              <input type="number" id="calibPrinted100" class="form-input" placeholder="如：量出 33.3 则填 33.3" step="0.1">
+              <span class="input-unit">mm</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="calibPrinted300" id="labelCalibPrinted300">用直尺测量打印纸张同心圆横向的 300m</label>
+            <div class="input-group">
+              <input type="number" id="calibPrinted300" class="form-input" placeholder="如：量出 100.0 则填 100.0" step="0.1">
+              <span class="input-unit">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-box">
+          <h3 style="font-size: 0.9rem; margin-bottom: 0.85rem; color: #fff;">竖向实测</h3>
+          <div class="form-row">
+            <label class="form-label" for="calibPrintedY100" id="labelCalibPrintedY100">用直尺测量打印纸张同心圆竖向的 100m</label>
+            <div class="input-group">
+              <input type="number" id="calibPrintedY100" class="form-input" placeholder="如：量出 30.0 则填 30.0" step="0.1">
+              <span class="input-unit">mm</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="calibPrintedY300" id="labelCalibPrintedY300">用直尺测量打印纸张同心圆竖向的 300m</label>
+            <div class="input-group">
+              <input type="number" id="calibPrintedY300" class="form-input" placeholder="如：量出 90.0 则填 90.0" step="0.1">
+              <span class="input-unit">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-box">
+          <h3 style="font-size: 0.9rem; margin-bottom: 0.85rem; color: #fff;">标尺实测</h3>
+          <div class="form-row">
+            <label class="form-label" for="calibPrintedRuler">用直尺测量打印纸张比例尺 100mm</label>
+            <div class="input-group">
+              <input type="number" id="calibPrintedRuler" class="form-input" placeholder="如：量出 100.0 则填 100.0" step="0.1">
+              <span class="input-unit">mm</span>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top: 0.75rem;">
+            <button type="button" class="btn btn-primary btn-sm" id="applyCalibBtn">应用补偿</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="resetCalibBtn">重置</button>
+          </div>
+        </div>
+
+        <div id="calibResultBox" class="status-box status-info">
+          当前未应用校准补偿（默认输出 100% 原始理论尺寸）。仅在打印机存在走纸拉伸偏差时，输入上方实测值并点击“应用补偿”。
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+          <button type="button" class="btn btn-primary" id="downloadCalibPdfBtn" style="flex: 1;">下载 PDF</button>
+          <button type="button" class="btn btn-secondary" id="printCalibBtn" style="flex: 1;">打印</button>
+        </div>
+      </section>
+
+      <!-- 步骤底栏控制按钮 -->
+      <div class="btn-row" style="justify-content: space-between; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" id="prevBtn" disabled>上一步</button>
+        <button type="button" class="btn btn-primary" id="nextBtn">下一步</button>
+      </div>
+
+    </div>
+
+    <!-- 右侧：实时物理尺寸矢量预览容器 -->
+    <div class="preview-panel">
+      <div class="preview-sticky">
+        <div class="preview-header">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <div class="preview-title">预览</div>
+            <div class="preview-badge" id="previewPaperBadge">210 × 297 mm</div>
+          </div>
+          <div class="preview-actions">
+            <button type="button" class="btn-icon" id="previewRotateBtn" title="切换旋转视角（竖版打印 / 横向正读）">旋转正读</button>
+            <button type="button" class="btn-icon" id="previewZoomBtn" title="全屏放大查看">放大</button>
+          </div>
+        </div>
+        
+        <div class="preview-canvas-wrapper" id="printArea">
+          <svg id="svgPreview" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 297">
+            <!-- 矢量图形由 app.js 动态绘制 -->
+          </svg>
+        </div>
+
+        <div class="preview-meta">
+          <ul class="preview-meta-list" id="previewMetaList">
+            <!-- 矢量参数由 app.js 逐行渲染 -->
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 免责声明说明文本 (位于 main 内部最后一个 div，全宽通栏，紧接 footer 顶部) -->
+    <div class="main-disclaimer">
+      <span>声明：PUBG: BATTLEGROUNDS 是 KRAFTON, Inc. 的注册商标。本项目为玩家个人独立开发的非营利性物理计算辅助工具，与 KRAFTON, Inc. 无任何官方隶属、赞助、授权或背书关系。</span>
+    </div>
+  </main>
+
+  <!-- 页脚版权与链接 -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-copyright">
+        <span>© <a href="https://eallion.com" target="_blank" rel="noopener noreferrer">eallion.com</a></span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/eallion/pubg-ruler" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+        <span class="footer-divider">/</span>
+        <a href="https://e5n.cc/@eallion" target="_blank" rel="me noopener noreferrer" class="footer-link">Mastodon</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 模态弹窗 0: 首次访问引导与使用说明 -->
+  <div class="modal-overlay hidden" id="welcomeGuideModal" role="dialog" aria-modal="true" aria-labelledby="welcomeGuideTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="welcomeGuideTitle">欢迎使用 PUBG 测距尺</div>
+        <button type="button" class="modal-close-btn" id="welcomeGuideCloseBtn" title="关闭">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- 测距原理动态指引演示卡片 (纯代码矢量动画) -->
+        <div class="demo-anim-card" id="demoAnimCard">
+          <div class="demo-anim-topbar">
+            <div class="demo-anim-tag">动态使用演示</div>
+            <div class="demo-step-badge" id="demoStepBadge">步骤 1 / 4：地图标记目标（在地图上打下战术 Ping 标）</div>
+            <button type="button" class="btn-demo-replay" id="demoReplayBtn" title="重新播放动画">重播</button>
+          </div>
+          <div class="demo-svg-container">
+            <!-- 底层：地图雷达与定位标点 -->
+            <svg id="demoSvgStage" viewBox="0 0 540 240" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="demoYellowGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#facc15" stop-opacity="0.8"/>
+                  <stop offset="100%" stop-color="#facc15" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+
+              <!-- 0. 地图底图背景 -->
+              <rect width="540" height="240" fill="#0d0f14" rx="8"/>
+              <!-- 地图战术方格 (模拟 M 键大地图网格) -->
+              <g stroke="rgba(255, 255, 255, 0.04)" stroke-width="1">
+                <line x1="60" y1="0" x2="60" y2="240"/>
+                <line x1="140" y1="0" x2="140" y2="240"/>
+                <line x1="220" y1="0" x2="220" y2="240"/>
+                <line x1="300" y1="0" x2="300" y2="240"/>
+                <line x1="380" y1="0" x2="380" y2="240"/>
+                <line x1="460" y1="0" x2="460" y2="240"/>
+                <line x1="0" y1="50" x2="540" y2="50"/>
+                <line x1="0" y1="100" x2="540" y2="100"/>
+                <line x1="0" y1="150" x2="540" y2="150"/>
+                <line x1="0" y1="200" x2="540" y2="200"/>
+              </g>
+
+              <!-- 地图地形示意纹理 -->
+              <path d="M 120 40 Q 200 15 280 45 T 440 30 Q 480 90 420 140 T 260 150 Z" fill="rgba(34, 197, 94, 0.03)" stroke="rgba(34, 197, 94, 0.08)" stroke-width="1"/>
+
+              <!-- 第三步：从原点连接到标点尖端的战术虚线 (80, 200) -> (248, 74)，长度 210px 对应 350m -->
+              <line id="demoRayLine" x1="80" y1="200" x2="80" y2="200" stroke="#facc15" stroke-width="1.8" stroke-dasharray="4 3" stroke-linecap="round" opacity="0"/>
+
+              <!-- 原点常驻（玩家自身 1 号定位标始终存在，无需额外绘制步骤，坐标 80, 200） -->
+              <g id="demoOriginGroup" opacity="1">
+                <circle id="demoOriginPulse" cx="80" cy="200" r="22" fill="url(#demoYellowGlow)"/>
+                <circle cx="80" cy="200" r="9" fill="#facc15" stroke="#0a0b0d" stroke-width="1.8"/>
+                <text x="80" y="203.5" fill="#000000" font-size="11" font-weight="900" font-family="-apple-system, system-ui, sans-serif" text-anchor="middle">1</text>
+                <rect x="36" y="217" width="88" height="18" rx="4" fill="rgba(15, 23, 42, 0.85)" stroke="rgba(250, 204, 21, 0.4)" stroke-width="0.8"/>
+                <text x="80" y="229" fill="#facc15" font-size="9" font-weight="600" text-anchor="middle">1号 (自身 0点)</text>
+              </g>
+
+              <!-- 第一步：标记目标点（PUBG 经典地图图钉，尖锥指向非整百米坐标 248, 74，圆内带数字1） -->
+              <g id="demoTargetGroup" opacity="0">
+                <circle id="demoTargetPulse" cx="248" cy="74" r="20" fill="url(#demoYellowGlow)"/>
+                <!-- 水滴/尖锥图钉：尖端 (248, 74)，顶部圆心 (248, 58)，半径 9 -->
+                <path d="M 248 74 L 240 62 A 9 9 0 1 1 256 62 Z" fill="#facc15" stroke="#0a0b0d" stroke-width="1.8"/>
+                <text x="248" y="61.5" fill="#000000" font-size="10" font-weight="900" font-family="-apple-system, system-ui, sans-serif" text-anchor="middle">1</text>
+                <rect x="210" y="26" width="76" height="18" rx="4" fill="rgba(15, 23, 42, 0.85)" stroke="rgba(250, 204, 21, 0.4)" stroke-width="0.8"/>
+                <text x="248" y="38" fill="#facc15" font-size="9" font-weight="600" text-anchor="middle">目标标记点</text>
+              </g>
+
+              <!-- 第四步：显示距离数值标签 (非整百米精确 350 m) -->
+              <g id="demoDistanceBadge" opacity="0">
+                <rect x="268" y="61" width="76" height="26" rx="6" fill="#1e293b" stroke="#facc15" stroke-width="1.5"/>
+                <text x="306" y="78" fill="#facc15" font-size="12" font-weight="bold" font-family="ui-monospace, monospace" text-anchor="middle">350 m</text>
+              </g>
+            </svg>
+
+            <!-- 顶层独立 3D 纸张层：左下角固定于 (80, 200)，向右上慢慢翻动平覆贴到屏幕上 -->
+            <div class="demo-paper-sheet" id="demoPaperSheet">
+              <svg viewBox="0 0 540 240" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="demoPaperGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="rgba(37, 99, 235, 0.22)"/>
+                    <stop offset="100%" stop-color="rgba(255, 255, 255, 0.08)"/>
+                  </linearGradient>
+                </defs>
+
+                <!-- 半透明硫酸纸底板 -->
+                <polygon points="70 215, 500 215, 500 15, 70 15" fill="url(#demoPaperGrad)" stroke="rgba(96, 165, 250, 0.35)" stroke-width="1.2"/>
+                
+                <!-- 直尺基准线 X轴 & Y轴 (原点精确位于 80, 200) -->
+                <line x1="80" y1="200" x2="490" y2="200" stroke="#f3f4f6" stroke-width="2" stroke-linecap="round"/>
+                <line x1="80" y1="200" x2="80" y2="15" stroke="#f3f4f6" stroke-width="2" stroke-linecap="round"/>
+
+                <!-- X轴刻度 (步长 60px = 100m) -->
+                <line x1="140" y1="200" x2="140" y2="206" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="140" y="217" fill="#9ca3af" font-size="9" font-family="monospace" text-anchor="middle">100m</text>
+
+                <line x1="200" y1="200" x2="200" y2="206" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="200" y="217" fill="#9ca3af" font-size="9" font-family="monospace" text-anchor="middle">200m</text>
+
+                <line x1="260" y1="200" x2="260" y2="206" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="260" y="217" fill="#9ca3af" font-size="9" font-family="monospace" text-anchor="middle">300m</text>
+
+                <line x1="320" y1="200" x2="320" y2="206" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="320" y="217" fill="#9ca3af" font-size="9" font-family="monospace" text-anchor="middle">400m</text>
+
+                <line x1="380" y1="200" x2="380" y2="206" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="380" y="217" fill="#9ca3af" font-size="9" font-family="monospace" text-anchor="middle">500m</text>
+
+                <line x1="440" y1="200" x2="440" y2="206" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="440" y="217" fill="#9ca3af" font-size="9" font-family="monospace" text-anchor="middle">600m</text>
+
+                <!-- Y轴刻度 (原点 200，向上递减 60px = 100m) -->
+                <line x1="80" y1="140" x2="74" y2="140" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="70" y="143" fill="#9ca3af" font-size="8" font-family="monospace" text-anchor="end">100</text>
+
+                <line x1="80" y1="80" x2="74" y2="80" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="70" y="83" fill="#9ca3af" font-size="8" font-family="monospace" text-anchor="end">200</text>
+
+                <line x1="80" y1="20" x2="74" y2="20" stroke="#9ca3af" stroke-width="1.2"/>
+                <text x="70" y="23" fill="#9ca3af" font-size="8" font-family="monospace" text-anchor="end">300</text>
+
+                <!-- 同心测距正圆弧线 (圆心严格锁定于 80, 200) -->
+                <!-- 弧 1: 100m (R=60，从 X=140 至 Y=140) -->
+                <path d="M 140 200 A 60 60 0 0 0 80 140" fill="none" stroke="rgba(96, 165, 250, 0.45)" stroke-width="1.2"/>
+                <text x="126" y="160" fill="rgba(147, 197, 253, 0.65)" font-size="8" font-family="monospace">100</text>
+
+                <!-- 弧 2: 200m (R=120，从 X=200 至 Y=80) -->
+                <path d="M 200 200 A 120 120 0 0 0 80 80" fill="none" stroke="rgba(96, 165, 250, 0.45)" stroke-width="1.2"/>
+                <text x="170" y="118" fill="rgba(147, 197, 253, 0.65)" font-size="8" font-family="monospace">200</text>
+
+                <!-- 弧 3: 300m (R=180，从 X=260 至 Y=20) -->
+                <path id="demoArc300" d="M 260 200 A 180 180 0 0 0 80 20" fill="none" stroke="rgba(96, 165, 250, 0.55)" stroke-width="1.6"/>
+                <text id="demoArc300Text" x="215" y="72" fill="rgba(147, 197, 253, 0.7)" font-size="9" font-family="monospace" font-weight="bold">300</text>
+
+                <!-- 弧 3.5: 350m 细分参考弧 (R=210，标点尖端 (248, 74) 严格落在此弧上，处于 300m 与 400m 中间) -->
+                <path id="demoArc350" d="M 290 200 A 210 210 0 0 0 179 15" fill="none" stroke="rgba(96, 165, 250, 0.3)" stroke-dasharray="3 3" stroke-width="1.1"/>
+                <text id="demoArc350Text" x="238" y="52" fill="rgba(147, 197, 253, 0.45)" font-size="8" font-family="monospace">350</text>
+
+                <!-- 弧 4: 400m (R=240，从 X=320 延展至顶部 X=233, Y=15) -->
+                <path id="demoArc400" d="M 320 200 A 240 240 0 0 0 233 15" fill="none" stroke="rgba(96, 165, 250, 0.35)" stroke-width="1.2"/>
+                <text id="demoArc400Text" x="268" y="38" fill="rgba(147, 197, 253, 0.55)" font-size="8" font-family="monospace">400</text>
+
+                <!-- 弧 5: 500m (R=300，从 X=380 延展至顶部 X=316, Y=15) -->
+                <path d="M 380 200 A 300 300 0 0 0 316 15" fill="none" stroke="rgba(96, 165, 250, 0.25)" stroke-width="1.0"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <p style="color: var(--text-secondary); margin-bottom: 0.85rem; font-size: 0.86rem; line-height: 1.6;">
+          本工具通过微米级物理几何换算，生成供普通打印机 1:1 打印的屏幕测距标尺。建议在开始制作前先阅读使用说明，掌握<strong>打印介质（推荐 110g 硫酸纸）</strong>、<strong>建议 1:1 实际大小打印</strong>与<strong>游戏内对位测距方法</strong>。
+        </p>
+        <div class="modal-highlight-box" style="margin: 0.6rem 0 0.85rem 0; font-size: 0.82rem; line-height: 1.6;">
+          <div>• <strong>设置基准</strong>：世界地图缩放灵敏度须设为 <code>10</code>，M 键按规则固定放大；</div>
+          <div>• <strong>打印介质</strong>：推荐使用 <code>110g 硫酸纸</code>（半透明描图纸）贴屏透视，建议选择实际大小无缩放打印；</div>
+          <div>• <strong>对位测距</strong>：将图纸 <code>0 点</code> 对准自身定位标，读取目标标记对应的距离弧线。</div>
+        </div>
+        <div style="font-size: 0.74rem; color: var(--text-tertiary); margin-top: 0.85rem; border-top: 1px solid var(--border-subtle); padding-top: 0.5rem; line-height: 1.5;">
+          声明：PUBG: BATTLEGROUNDS 是 KRAFTON, Inc. 的注册商标。本项目为玩家个人开发的非营利性物理计算辅助工具，与 KRAFTON, Inc. 无任何官方隶属或背书关系。
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.6rem;">
+        <label class="modal-checkbox-label">
+          <input type="checkbox" id="dontShowWelcomeToday"> 今日不再提示
+        </label>
+        <div class="modal-footer-right" style="display: flex; gap: 0.6rem; align-items: center;">
+          <button type="button" class="btn btn-secondary btn-sm" id="welcomeNewConfigBtn" title="生成新 UUID 并开启全新方案配置">开始设置</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="welcomeCloseBtn" title="保留已有 UUID 与当前配置继续使用">继续设置</button>
+          <a href="./guide.html" class="btn btn-primary btn-sm" id="welcomeReadGuideBtn" style="text-decoration: none; padding: 0.35rem 0.85rem;">阅读使用说明</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态弹窗 1: 地图设置两步确认 (步骤3专属，阻止后层操作) -->
+  <div class="modal-overlay hidden" id="mapGuideModal" role="dialog" aria-modal="true" aria-labelledby="mapGuideTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="mapGuideTitle">地图设置</div>
+        <button type="button" class="modal-close-btn" id="mapGuideCloseBtn" title="关闭">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- 第 1 步: 地图缩放灵敏度设为 10 -->
+        <div id="mapGuideStep1">
+          <span class="modal-step-tag">步骤 1 / 2</span>
+          <div style="font-weight: 600; color: #ffffff; margin-bottom: 0.5rem;">配置地图缩放灵敏度</div>
+          <p style="color: var(--text-secondary); margin-bottom: 0.75rem;">
+            请在游戏中打开设置，确保地图缩放灵敏度精准为 10，以保持屏幕缩放倍率物理基准一致。
+          </p>
+          <div class="modal-highlight-box" style="margin-bottom: 0.75rem;">
+            <div style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 0.25rem;">游戏内设置路径：</div>
+            <code style="color: #93c5fd; font-size: 0.85rem;">設定 → 遊戲性（游戏玩法） → 介面 → 世界地圖縮放靈敏度</code>
+            <div style="margin-top: 0.6rem; font-size: 0.88rem; color: #ffffff;">
+              世界地图缩放灵敏度：<strong style="color: #60a5fa; font-size: 1.05rem;">10</strong>
+            </div>
+          </div>
+          <div style="border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border-subtle); background: #0c0d10; text-align: center;">
+            <img src="./public/setting-10.png" alt="游戏设置：世界地图缩放灵敏度 10" style="width: 100%; height: auto; max-height: 180px; object-fit: contain; display: block; margin: 0 auto; border-radius: var(--radius-sm);">
+          </div>
+        </div>
+
+        <!-- 第 2 步: 游戏内 M 放大倍率 -->
+        <div id="mapGuideStep2" style="display: none;">
+          <span class="modal-step-tag">步骤 2 / 2</span>
+          <div style="font-weight: 600; color: #ffffff; margin-bottom: 0.5rem;">确认地图放大倍率</div>
+          <p style="color: var(--text-secondary); margin-bottom: 0.75rem;">
+            进入对局或训练场，按 <kbd style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-focus); border-radius: 4px; padding: 0.15rem 0.45rem; font-family: var(--font-mono);">M</kbd> 键打开大地图，根据地图规格操作滚轮：
+          </p>
+          <div class="modal-highlight-box" style="padding: 0.75rem 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; font-size: 0.82rem;">
+              <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-subtle);">
+                <div style="color: #60a5fa; font-weight: 600; margin-bottom: 0.2rem;">8×8 大地图</div>
+                <div style="color: #fff;">滚轮向上<strong>放大 3 次</strong></div>
+                <div style="font-size: 0.72rem; color: var(--text-tertiary); margin-top: 0.2rem;">海岛 / 沙漠 / 泰戈 / 帝斯顿 / 荣都</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-subtle);">
+                <div style="color: #60a5fa; font-weight: 600; margin-bottom: 0.2rem;">4×4 中地图</div>
+                <div style="color: #fff;">滚轮向上<strong>放大 2 次</strong></div>
+                <div style="font-size: 0.72rem; color: var(--text-tertiary); margin-top: 0.2rem;">萨诺 (雨林)</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-subtle);">
+                <div style="color: #34d399; font-weight: 600; margin-bottom: 0.2rem;">3×3 小地图</div>
+                <div style="color: #fff;">保持默认，<strong>不放大</strong></div>
+                <div style="font-size: 0.72rem; color: var(--text-tertiary); margin-top: 0.2rem;">帕拉莫</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-subtle);">
+                <div style="color: #34d399; font-weight: 600; margin-bottom: 0.2rem;">2×2 超小地图</div>
+                <div style="color: #fff;">保持默认，<strong>不放大</strong></div>
+                <div style="font-size: 0.72rem; color: var(--text-tertiary); margin-top: 0.2rem;">卡拉金</div>
+              </div>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-tertiary); margin-top: 0.65rem; border-top: 1px solid var(--border-subtle); padding-top: 0.5rem; line-height: 1.5;">
+              • 白色细线方格为 <strong>100 米</strong>（测距尺基准刻度）<br>
+              • 粗线大方格为 <strong>1000 米</strong>（1 公里大格）
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <label class="modal-checkbox-label">
+          <input type="checkbox" id="dontShowMapGuide"> 不再显示
+        </label>
+        <div class="modal-footer-right">
+          <button type="button" class="btn btn-primary btn-sm" id="mapGuideNextBtn">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态弹窗 2: 打印须知确认 (步骤4专属，阻止后层操作) -->
+  <div class="modal-overlay hidden" id="printNoticeModal" role="dialog" aria-modal="true" aria-labelledby="printNoticeTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="printNoticeTitle">打印须知</div>
+        <button type="button" class="modal-close-btn" id="printNoticeCloseBtn" title="关闭">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- 提示 1: 复制 UUID -->
+        <div style="margin-bottom: 1.15rem;">
+          <div style="font-weight: 600; color: #ffffff; margin-bottom: 0.35rem;">1. 保存配置 UUID</div>
+          <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+            专属配置识别码，纸张右上角带此编号，用于后续校对与方案检索。
+          </p>
+          <div style="display: flex; gap: 0.5rem; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); padding: 0.45rem 0.75rem; border-radius: var(--radius-sm);">
+            <code id="modalUuidText" style="flex: 1; font-family: var(--font-mono); font-size: 0.85rem; color: #93c5fd; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</code>
+            <button type="button" class="btn btn-secondary btn-sm" id="modalCopyUuidBtn" style="padding: 0.25rem 0.65rem; font-size: 0.75rem; white-space: nowrap;">复制</button>
+          </div>
+        </div>
+
+        <!-- 提示 2: 打印设置 -->
+        <div style="margin-bottom: 1.15rem;">
+          <div style="font-weight: 600; color: #ffffff; margin-bottom: 0.35rem;">2. 打印参数规范</div>
+          <div class="modal-highlight-box" style="margin: 0.4rem 0; font-size: 0.8rem; line-height: 1.6;">
+            <div>• <strong>推荐打印纸张</strong>：推荐使用 <strong>110g 硫酸纸</strong>（半透明且平整挺括，便于直接贴在屏幕上透视地图）；</div>
+            <div>• <strong>建议无缩放打印</strong>：建议在打印设置中勾选 100% 或实际大小，避免纸张比例形变；</div>
+            <div>• <strong>同一打印机</strong>：打印与后续校准微调建议使用同一台物理打印机；</div>
+            <div>• <strong>同一打印设置</strong>：校准后需要使用与校准前同样的打印方式（如同一打印设置、进纸朝向与介质类型），确保校准补偿精准对齐。</div>
+          </div>
+        </div>
+
+        <!-- 提示 3: 打印后校准 -->
+        <div>
+          <div style="font-weight: 600; color: #ffffff; margin-bottom: 0.35rem;">3. 打印后进入校准</div>
+          <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+            出纸后使用实体直尺测量标尺。如存在机械公差，请进入第 5 步【校准】输入实测数据，系统反推生成精密补偿图纸。
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <label class="modal-checkbox-label">
+          <input type="checkbox" id="dontShowPrintNotice"> 不再显示
+        </label>
+        <div class="modal-footer-right">
+          <button type="button" class="btn btn-primary btn-sm" id="printNoticeConfirmBtn">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态弹窗 3: 矢量预览放大查看 Lightbox -->
+  <div class="modal-overlay hidden" id="previewZoomModal" role="dialog" aria-modal="true" aria-labelledby="previewZoomTitle">
+    <div class="preview-zoom-container">
+      <div class="preview-zoom-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <div class="modal-title" id="previewZoomTitle">图纸全景</div>
+          <div class="preview-badge" id="zoomPaperBadge">210 × 297 mm</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.45rem;">
+          <button type="button" class="btn btn-secondary btn-sm" id="zoomOutBtn" title="缩小 (滚轮向下)">-</button>
+          <span class="preview-badge" id="zoomPercentBadge" style="min-width: 46px; text-align: center;">100%</span>
+          <button type="button" class="btn btn-secondary btn-sm" id="zoomInBtn" title="放大 (滚轮向上)">+</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="zoomResetBtn" title="重置 100%">1:1</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="zoomRotateBtn">旋转正读</button>
+          <button type="button" class="modal-close-btn" id="previewZoomCloseBtn" title="关闭">×</button>
+        </div>
+      </div>
+      <div class="preview-zoom-body" id="previewZoomBody">
+        <div class="zoom-stage" id="zoomStage">
+          <svg id="svgZoomPreview" xmlns="http://www.w3.org/2000/svg">
+            <!-- 矢量图形动态渲染 -->
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态弹窗 4: 打印校准提示 -->
+  <div class="modal-overlay hidden" id="calibGuideModal" role="dialog" aria-modal="true" aria-labelledby="calibGuideTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="calibGuideTitle">校准提示</div>
+        <button type="button" class="modal-close-btn" id="calibGuideCloseBtn" title="关闭">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-highlight-box" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(220, 38, 38, 0.08); margin: 0 0 1rem 0;">
+          <div style="font-weight: 600; color: #fca5a5; margin-bottom: 0.35rem;">仅在尺寸不准时才需校准</div>
+          <p style="font-size: 0.82rem; color: #fecaca; line-height: 1.6;">
+            若上一步打印的测距尺实测尺寸精准，可直接在游戏中使用，<strong>无需校准</strong>。<br>
+            仅当纸张标尺或 100 米线与实体直尺对比存在明显机械误差时，才需在此页面输入实测值以生成硬件补偿图纸。
+          </p>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+          核验方法：用直尺测量纸张左侧的 100mm 标尺，若刚好为 100mm，即为完美打印。
+        </p>
+      </div>
+      <div class="modal-footer">
+        <label class="modal-checkbox-label">
+          <input type="checkbox" id="dontShowCalibGuide"> 不再显示
+        </label>
+        <div class="modal-footer-right">
+          <button type="button" class="btn btn-primary btn-sm" id="calibGuideConfirmBtn">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入依赖脚本 -->
+  <script src="./monitors-db.js"></script>
+  <script src="./pdf-generator.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

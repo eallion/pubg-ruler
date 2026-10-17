@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14171d"/>
+      <stop offset="100%" stop-color="#090a0d"/>
+    </linearGradient>
+    <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 图标底色容器 -->
+  <rect width="64" height="64" rx="14" fill="url(#bgGrad)"/>
+  <rect width="62" height="62" x="1" y="1" rx="13" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-opacity="0.4"/>
+
+  <!-- 第一象限同心测距弧线 (几何微米测距核心象征) -->
+  <path d="M 26 50 A 14 14 0 0 0 12 36" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-opacity="0.7"/>
+  <path d="M 38 50 A 26 26 0 0 0 12 24" fill="none" stroke="url(#arcGrad)" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M 50 50 A 38 38 0 0 0 12 12" fill="none" stroke="#93c5fd" stroke-width="2" stroke-linecap="round" stroke-opacity="0.85"/>
+
+  <!-- 第二个圆和第三个圆之间的 1 号选手目标标记点 (Ping Mark) -->
+  <circle cx="35" cy="27" r="4.2" fill="#facc15" fill-opacity="0.25"/>
+  <circle cx="35" cy="27" r="2.4" fill="#facc15" stroke="#0a0b0d" stroke-width="0.8"/>
+  <circle cx="35" cy="27" r="0.9" fill="#ffffff"/>
+
+  <!-- X 轴与 Y 轴物理直尺基准线 -->
+  <line x1="12" y1="50" x2="55" y2="50" stroke="#f3f4f6" stroke-width="2" stroke-linecap="round"/>
+  <line x1="12" y1="50" x2="12" y2="7" stroke="#f3f4f6" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- X 轴刻度短线 -->
+  <line x1="26" y1="50" x2="26" y2="53.5" stroke="#9ca3af" stroke-width="1.5"/>
+  <line x1="38" y1="50" x2="38" y2="54.5" stroke="#f3f4f6" stroke-width="1.8"/>
+  <line x1="50" y1="50" x2="50" y2="53.5" stroke="#9ca3af" stroke-width="1.5"/>
+
+  <!-- Y 轴刻度短线 -->
+  <line x1="12" y1="36" x2="8.5" y2="36" stroke="#9ca3af" stroke-width="1.5"/>
+  <line x1="12" y1="24" x2="7.5" y2="24" stroke="#f3f4f6" stroke-width="1.8"/>
+  <line x1="12" y1="12" x2="8.5" y2="12" stroke="#9ca3af" stroke-width="1.5"/>
+
+  <!-- 原点 0 点：1 号选手自身位置定位标 -->
+  <circle cx="12" cy="50" r="4.8" fill="#facc15" fill-opacity="0.2"/>
+  <circle cx="12" cy="50" r="3.2" fill="#facc15" stroke="#0a0b0d" stroke-width="0.8"/>
+  <circle cx="12" cy="50" r="1.2" fill="#ffffff"/>
+</svg>
